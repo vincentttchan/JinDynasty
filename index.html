@@ -153,18 +153,18 @@
         <div id="echarts-map" class="absolute inset-0 z-0 transition-opacity duration-1000" :class="{'opacity-0 pointer-events-none': isFullScreenNotes}"></div>
         
         <!-- 暗化遮罩 -->
-        <div :class="{'opacity-60 backdrop-blur-sm': (mode === 'quiz' && !isFullScreenNotes) || showTransitionModal, 'opacity-0': !((mode === 'quiz' && !isFullScreenNotes) || showTransitionModal)}" 
+        <div :class="{'opacity-60 backdrop-blur-sm': mode === 'quiz' && !isFullScreenNotes, 'opacity-0': !(mode === 'quiz' && !isFullScreenNotes)}" 
              class="absolute inset-0 bg-[#1A1A1A] z-10 transition-all duration-700 pointer-events-none"></div>
 
         <!-- 頂部標題 -->
-        <div class="absolute top-8 left-8 z-20 pointer-events-none transition-opacity duration-500" :class="{'opacity-0': isFullScreenNotes || showTransitionModal}">
+        <div class="absolute top-8 left-8 z-20 pointer-events-none transition-opacity duration-500" :class="{'opacity-0': isFullScreenNotes}">
             <h1 class="text-4xl font-bold tracking-[0.2em] text-[#1A1A1A] drop-shadow-md flex items-center gap-4">
                 <span class="w-1.5 h-8 bg-[#A63030] inline-block"></span>晉朝的建立、滅亡與偏安
             </h1>
         </div>
 
         <!-- 左下角：時間軸面板 -->
-        <div class="absolute bottom-6 left-8 right-[400px] xl:right-[480px] z-20 flex justify-center transition-opacity duration-500" :class="{'opacity-0 pointer-events-none': isFullScreenNotes || showTransitionModal}">
+        <div class="absolute bottom-6 left-8 right-[400px] xl:right-[480px] z-20 flex justify-center transition-opacity duration-500" :class="{'opacity-0 pointer-events-none': isFullScreenNotes}">
             <div class="glass-panel px-6 py-4 rounded-2xl w-full max-w-4xl bg-[rgba(248,246,240,0.85)] backdrop-blur-[16px]">
                 <div class="relative flex justify-between items-center">
                     <div class="absolute h-[2px] bg-[#D6CBB8] top-1/2 -translate-y-1/2 left-4 right-4 -z-10"></div>
@@ -188,64 +188,12 @@
             </div>
         </div>
 
-        <!-- 中間過場考驗彈出視窗 -->
-        <transition name="modal-fade">
-            <div v-if="showTransitionModal" class="absolute inset-0 z-50 flex justify-center items-center pointer-events-auto">
-                <div class="bg-[#FDFCF8] rounded-xl w-[90%] max-w-2xl shadow-2xl overflow-hidden border border-[#A88F66]/30">
-                    <div class="px-8 py-6 border-b border-[#EAE3D5] bg-[#F8F6F0]">
-                        <div class="flex items-center gap-3">
-                            <div class="w-1.5 h-6 bg-[#A63030]"></div>
-                            <h2 class="text-2xl font-bold text-[#1A1A1A] tracking-wider">歷史考驗：解鎖下一幕</h2>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-[#1A1A1A] font-bold text-lg mb-6 leading-relaxed">
-                            <span class="text-[#8B4513] mr-1">思考任務：</span>{{ stepsData[currentStep].transitionQuiz.question }}
-                        </h3>
-                        <div class="grid grid-cols-1 gap-4 mb-2">
-                            <button v-for="(opt, idx) in stepsData[currentStep].transitionQuiz.options" :key="idx"
-                                    @click="checkTransitionAnswer(idx)"
-                                    :disabled="isTransitionCorrect"
-                                    class="mcq-btn px-6 py-4 text-left rounded-lg border-2 bg-white text-[#4A4A4A] font-medium tracking-wide text-[1.05rem]"
-                                    :class="[
-                                        transitionSelectedOption === idx && isTransitionCorrect ? 'border-[#4CAF50] bg-[#F0F7F0] text-[#2E7D32] font-bold shadow-sm' :
-                                        transitionWrongOption === idx ? 'shake border-[#A63030] bg-[#FFF5F5] text-[#A63030]' :
-                                        'border-[#EAE3D5]'
-                                    ]">
-                                <span class="font-bold mr-2 text-lg">{{ String.fromCharCode(65 + idx) }}.</span> {{ opt }}
-                            </button>
-                        </div>
-                        <transition name="fade">
-                            <div v-if="isTransitionCorrect" class="mt-8 p-5 bg-[#F0F7F0] border border-[#8FB989] rounded-lg shadow-sm">
-                                <div class="flex items-start gap-3">
-                                    <div class="mt-0.5 text-[#4CAF50] bg-white rounded-full p-0.5 shadow-sm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-[#3A5646] font-bold text-[1.05rem] leading-relaxed mb-4">
-                                            答對了！{{ stepsData[currentStep].transitionQuiz.explanation }}
-                                        </p>
-                                        <button @click="proceedToNextScene" 
-                                                class="px-6 py-2.5 bg-[#4B6E5A] text-white font-bold rounded-lg hover:bg-[#3A5646] transition-colors shadow-md flex items-center gap-2">
-                                            繼續前往下一幕
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </transition>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
         <!-- 右側面板 -> 全螢幕卷宗面板 -->
         <div class="absolute z-30 flex flex-col glass-panel rounded-2xl overflow-hidden transition-all duration-[800ms] ease-in-out"
              :class="[
                  isFullScreenNotes 
                  ? 'inset-6 md:inset-12 lg:inset-x-32 lg:inset-y-8 bg-[#F8F6F0]/95 shadow-[0_0_60px_rgba(0,0,0,0.15)] backdrop-blur-2xl' 
-                 : 'top-6 bottom-6 right-6 w-[380px] xl:w-[440px] bg-[rgba(248,246,240,0.85)] backdrop-blur-[16px]',
-                 showTransitionModal ? 'opacity-0 pointer-events-none transform translate-x-10' : 'opacity-100 transform translate-x-0'
+                 : 'top-6 bottom-6 right-6 w-[380px] xl:w-[440px] bg-[rgba(248,246,240,0.85)] backdrop-blur-[16px]'
              ]">
             
             <div class="px-8 py-4 border-b border-[#A88F66]/30 flex items-center transition-colors"
@@ -432,7 +380,7 @@
                         ← 上一幕
                     </button>
                     
-                    <button v-if="currentStep < stepsData.length - 1" @click="triggerNextStepModal" 
+                    <button v-if="currentStep < stepsData.length - 1" @click="nextStep" 
                             class="px-8 py-2.5 rounded-full bg-[#1A1A1A] text-[#F0EBE1] text-sm tracking-widest font-bold shadow-lg hover:bg-[#A63030] transition-all transform hover:-translate-y-0.5 cursor-pointer">
                         下一幕 ▶
                     </button>
@@ -575,20 +523,9 @@
                     showAnswer: false, 
                     revealedCards: {}, 
                     
-                    showTransitionModal: false,
-                    transitionSelectedOption: null,
-                    isTransitionCorrect: false,
-                    transitionWrongOption: null,
-                    
                     stepsData: [
                         {
                             title: '三國鼎立',
-                            transitionQuiz: {
-                                question: '在西晉統一全國之前，中國處於魏、蜀、吳三國鼎立的局面。司馬氏家族原本是哪一個國家的權臣？',
-                                options: ['蜀國（劉備建立）', '魏國（曹操奠基）', '吳國（孫權建立）'],
-                                correctIndex: 1,
-                                explanation: '司馬氏家族世代為曹魏的重臣，後來逐漸掌握大權，最終取代曹魏建立晉朝。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：在魏、蜀、吳三國之中，為什麼是佔據北方的「魏國」擁有最強大的實力，並為後來西晉統一打下基礎？',
                                 answer: '因為當時中國的經濟與人口重心主要集中在北方的黃河流域。魏國佔據了中原核心地帶，擁有人口優勢與豐富的農業資源，實力遠超蜀、吳兩國。'
@@ -607,12 +544,6 @@
                         },
                         {
                             title: '西晉建立',
-                            transitionQuiz: {
-                                question: '司馬炎靠著家族勢力奪取了皇位。為了防範其他家族也來搶皇位，他決定把兵權交給誰？',
-                                options: ['自己的親戚（宗室王族）', '考試選拔出的聰明人', '隔壁的胡人部落'],
-                                correctIndex: 0,
-                                explanation: '晉武帝認為「自家人最可靠」，大封宗室為王，但這卻為日後的「八王之亂」埋下了定時炸彈。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：司馬家原本是曹魏的臣子，最後卻「篡位」自己當皇帝。你認為這種「臣子奪權」的行為，會對日後國家的統治帶來什麼不良影響？',
                                 answer: '這破壞了傳統的「忠君」觀念。既然司馬家可以篡位，其他掌握兵權的將軍或宗室也會有樣學樣，認為「只要有實力就能當皇帝」，這為日後西晉內部的長期動亂埋下了種子。'
@@ -627,12 +558,6 @@
                         },
                         {
                             title: '胡人內遷',
-                            transitionQuiz: {
-                                question: '胡人（游牧民族）和漢人（農耕民族）搬到一起住，剛開始常常吵架。但時間久了，他們的生活發生了什麼變化？',
-                                options: ['永遠不跟對方說話', '互相學習，例如漢人學會吃烤肉、胡人學會種田', '全部搬回原來的地方'],
-                                correctIndex: 1,
-                                explanation: '這就是歷史上的「民族融合」。大家的生活習慣互相影響，豐富了彼此的文化。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：為什麼原本住在塞外的胡人，一開始會想要「內遷」搬到中原地區來住呢？',
                                 interactiveType: 'mapCards', 
@@ -655,12 +580,6 @@
                         },
                         {
                             title: '八王之亂',
-                            transitionQuiz: {
-                                question: '西晉初年，晉武帝為了鞏固皇權，大量分封宗室為王並給予軍權。這最終導致了什麼嚴重的後果？',
-                                options: ['諸王帶領軍隊成功保衛了邊疆', '諸王互相爭奪權力，引發嚴重的內部動亂', '諸王覺得太辛苦，主動放棄了兵權'],
-                                correctIndex: 1,
-                                explanation: '皇帝給予親戚過大的權力，導致他們擁兵自重，最終爆發了長達十六年、嚴重破壞國力的「八王之亂」。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：中西方歷史上，都有統治者面對饑荒時說出令人震驚的話。觀察下方兩位統治者的「邏輯鏈」，這對國家會造成什麼共通的影響？',
                                 interactiveType: 'logicChain',
@@ -694,12 +613,6 @@
                         },
                         {
                             title: '永嘉之禍',
-                            transitionQuiz: {
-                                question: '永嘉之禍後，西晉皇室與大量中原人士紛紛往南方逃避戰亂。這在歷史上被稱為什麼？',
-                                options: ['衣冠南渡', '安史之亂', '靖康之恥'],
-                                correctIndex: 0,
-                                explanation: '「衣冠」代表著士族與文明，這場大規模的人口遷徙，將北方的文化與技術帶到了南方。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：西晉滅亡後，中國進入了長達近三百年的分裂時期（東晉十六國、南北朝）。你認為在這樣混亂的時代，除了打仗，有沒有什麼事物是超越國界、能安慰人心的？',
                                 answer: '有的，那就是宗教。在戰亂頻繁、生命脆弱的時代，佛教和道教迅速在民間和貴族之間傳播開來，成為許多人尋求心靈寄託的重要依靠。'
@@ -720,12 +633,6 @@
                         },
                         {
                             title: '東晉政局',
-                            transitionQuiz: {
-                                question: '晉元帝在南方建立東晉，當時掌握極大權力，甚至能與皇室平起平坐的階層是誰？',
-                                options: ['當地的農民軍', '世族（名門望族）', '宮中的宦官'],
-                                correctIndex: 1,
-                                explanation: '當時世族力量強大，尤其是王導等北方南渡的世族，故有「王與馬，共天下」之說。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：「王與馬，共天下」雖然穩定了東晉初期的政局，但這種「世族掌權」的現象會對國家造成什麼隱患？',
                                 answer: '世族壟斷了政治與資源，導致皇權低落，政府施政往往受制於世族利益；同時也阻礙了社會階層的流動，有才華的平民難以做官。'
@@ -745,12 +652,6 @@
                         },
                         {
                             title: '淝水之戰',
-                            transitionQuiz: {
-                                question: '統一北方的「前秦」率領大軍南下攻打東晉，雙方在哪裡爆發了決定性戰役？',
-                                options: ['赤壁', '官渡', '淝水'],
-                                correctIndex: 2,
-                                explanation: '淝水之戰是中國歷史上著名的以少勝多的戰役。東晉戰勝後，成功保衛了江南地區。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：兵力佔絕對優勢的前秦為何會敗給東晉？這場勝利對東晉有什麼重要意義？',
                                 answer: '前秦軍隊由多民族臨時拼湊，人心不齊；而東晉軍隊保家衛國，士氣高昂。這場勝利保衛了江南免受戰亂破壞，為南方的經濟開發提供了和平的環境。'
@@ -770,12 +671,6 @@
                         },
                         {
                             title: '江南的開發',
-                            transitionQuiz: {
-                                question: '大量中原人口因為避難而「衣冠南渡」，這對南方的發展起到了什麼關鍵作用？',
-                                options: ['導致南方糧食嚴重短缺', '帶來了勞動力與先進的農業技術', '讓南方人開始習慣游牧生活'],
-                                correctIndex: 1,
-                                explanation: '北方人帶著技術和知識南下，大大促進了江南地區的開發，是中國經濟重心逐漸南移的轉捩點。'
-                            },
                             deepThinking: {
                                 question: '延伸思考：除了北方人口的南移，江南地區本身具備了哪些得天獨厚的條件，讓它能夠得到「重大開發」？',
                                 interactiveType: 'mapCards', 
@@ -1130,34 +1025,6 @@
                     this.chartInstance.setOption(option, true);
                 },
 
-                triggerNextStepModal() {
-                    this.showTransitionModal = true;
-                    this.transitionSelectedOption = null;
-                    this.isTransitionCorrect = false;
-                    this.transitionWrongOption = null;
-                },
-
-                checkTransitionAnswer(index) {
-                    if (this.isTransitionCorrect) return; 
-                    this.transitionSelectedOption = index;
-                    
-                    if (index === this.stepsData[this.currentStep].transitionQuiz.correctIndex) {
-                        this.isTransitionCorrect = true;
-                    } else {
-                        this.transitionWrongOption = index;
-                        setTimeout(() => { this.transitionWrongOption = null; }, 400);
-                    }
-                },
-
-                proceedToNextScene() {
-                    this.showTransitionModal = false;
-                    if (this.currentStep < this.stepsData.length - 1) {
-                        this.currentStep++;
-                    } else {
-                        this.startQuiz();
-                    }
-                },
-                
                 revealBlank(id) {
                     if (this.mode === 'learn') {
                         this.revealedBlanks[id] = true;
@@ -1173,8 +1040,9 @@
                     this.updateMap(); // 點擊卡片後更新地圖顏色與特效
                 },
                 prevStep() { if (this.currentStep > 0) this.currentStep--; },
+                nextStep() { if (this.currentStep < this.stepsData.length - 1) this.currentStep++; },
                 jumpToStep(index) { 
-                    if (this.mode === 'learn' && !this.showTransitionModal) {
+                    if (this.mode === 'learn') {
                         this.currentStep = index; 
                     }
                 },
@@ -1207,7 +1075,6 @@
                     this.mistakes = 0;
                     this.showResultPopup = false;
                     this.isFullScreenNotes = false;
-                    this.showTransitionModal = false;
                     this.showDeepThinking = false;
                     this.showAnswer = false; 
                     this.revealedBlanks = {};
