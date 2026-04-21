@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>西晉與東晉歷史 - 沉浸式互動地圖</title>
+    <title>晉朝的建立、滅亡與偏安 - 沉浸式互動地圖</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
@@ -235,7 +235,6 @@
                     <span v-if="isFullScreenNotes" class="w-2 h-2 bg-[#A63030] transform rotate-45 inline-block"></span>
                 </h2>
                 
-                <!-- 新增獨立的測驗按鈕 / 測驗狀態指示 -->
                 <div v-if="!isFullScreenNotes" class="flex items-center">
                     <span v-if="mode === 'quiz'" class="text-xs font-bold text-[#A63030] border border-[#A63030] px-3 py-1 rounded-full animate-pulse">
                         測驗進行中
@@ -299,14 +298,17 @@
                                         <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#A88F66]"></div>
                                         <p class="text-[#4A4A4A] text-[0.95rem] leading-relaxed font-bold">{{ stepsData[currentStep].deepThinking.question }}</p>
 
-                                        <!-- 若有互動卡片 -->
-                                        <div v-if="stepsData[currentStep].deepThinking.interactiveType === 'cards'" class="mt-4 grid grid-cols-1 gap-3">
+                                        <!-- 若有互動卡片 (結合地圖尋寶) -->
+                                        <div v-if="stepsData[currentStep].deepThinking.interactiveType === 'mapCards'" class="mt-4 grid grid-cols-1 gap-3">
                                             <div v-for="(card, cIdx) in stepsData[currentStep].deepThinking.cards" :key="cIdx"
-                                                 @click="toggleCard(cIdx)"
-                                                 class="cursor-pointer border border-[#A88F66]/30 rounded-lg p-3 bg-white hover:bg-[#FDFCF8] transition-all shadow-sm">
+                                                 :class="revealedCards[cIdx] ? 'border-[#4B6E5A]/50 bg-[#F0F7F0]' : 'border-[#A88F66]/30 bg-white hover:bg-[#FDFCF8]'"
+                                                 class="border rounded-lg p-3 transition-all shadow-sm">
                                                 <div class="flex items-center justify-between font-bold text-[#8B4513] text-[0.9rem]">
                                                     <span>🔍 {{ card.title }}</span>
-                                                    <span class="text-xs text-[#A88F66]" v-if="!revealedCards[cIdx]">點擊翻開線索</span>
+                                                    <span class="text-xs text-[#A63030] animate-pulse font-bold" v-if="!revealedCards[cIdx]">👉 請在地圖尋找並點擊</span>
+                                                    <span class="text-xs text-[#4B6E5A] font-bold flex items-center gap-1" v-else>
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> 已解鎖
+                                                    </span>
                                                 </div>
                                                 <transition name="fade">
                                                     <p v-if="revealedCards[cIdx]" class="mt-2 text-[0.85rem] text-[#4A4A4A] leading-relaxed border-t border-[#A88F66]/20 pt-2">
@@ -317,7 +319,7 @@
                                             </div>
                                         </div>
 
-                                        <!-- 歷史對比邏輯鏈 (如八王之亂) -->
+                                        <!-- 歷史對比邏輯鏈 -->
                                         <div v-else-if="stepsData[currentStep].deepThinking.interactiveType === 'logicChain'" class="mt-4 flex flex-col gap-4">
                                             <div class="bg-white border border-[#A88F66]/30 rounded-xl p-5 shadow-sm">
                                                 <h4 class="font-bold text-[#8B4513] mb-5 text-center text-[1.05rem]">{{ stepsData[currentStep].deepThinking.logicChain.title }}</h4>
@@ -326,13 +328,11 @@
                                                         <div class="text-[0.95rem] font-bold text-[#F0EBE1] bg-[#4A4A4A] px-4 py-1.5 rounded-full shadow-sm">{{ chain.figure }}</div>
                                                         <div class="text-[1.1rem] font-bold text-[#A63030] my-3 font-serif tracking-widest">「{{ chain.quote }}」</div>
                                                         
-                                                        <!-- 邏輯步驟箭頭向下 -->
                                                         <div class="flex flex-col items-center w-full mt-2">
                                                             <template v-for="(step, sIdx) in chain.steps" :key="sIdx">
                                                                 <div class="bg-[#F8F6F0] border border-[#D6CBB8] text-[#4A4A4A] text-[0.85rem] font-bold py-2 px-4 rounded-lg text-center w-full max-w-[220px] shadow-sm transition-all hover:border-[#A88F66] hover:bg-white">
                                                                     {{ step }}
                                                                 </div>
-                                                                <!-- 向下箭頭 -->
                                                                 <svg v-if="sIdx < chain.steps.length - 1" class="w-5 h-5 text-[#A88F66] my-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                                                             </template>
                                                         </div>
@@ -341,20 +341,7 @@
                                             </div>
                                         </div>
 
-                                        <!-- 歷史對比卡片 (舊版備用) -->
-                                        <div v-else-if="stepsData[currentStep].deepThinking.interactiveType === 'comparison'" class="mt-4 flex flex-col gap-4">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div v-for="(item, idx) in stepsData[currentStep].deepThinking.comparison" :key="idx" class="bg-white border border-[#A88F66]/30 rounded-lg p-4 shadow-sm relative overflow-hidden">
-                                                    <div class="absolute top-0 left-0 w-full h-1" :class="idx === 0 ? 'bg-[#4B6E5A]' : 'bg-[#A63030]'"></div>
-                                                    <div class="font-bold text-[#1A1A1A] mb-1 text-[0.9rem]">{{ item.name }}</div>
-                                                    <div class="text-lg font-bold text-[#8B4513] mb-3 font-serif">「{{ item.quote }}」</div>
-                                                    <div class="text-[0.8rem] text-[#4A4A4A] mb-1.5"><span class="font-bold">背景：</span>{{ item.context }}</div>
-                                                    <div class="text-[0.8rem] text-[#4A4A4A]"><span class="font-bold">結果：</span>{{ item.result }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 數據視覺化橫條圖 (如江南開發) -->
+                                        <!-- 數據視覺化橫條圖 -->
                                         <div v-else-if="stepsData[currentStep].deepThinking.interactiveType === 'chart'" class="mt-4 bg-white border border-[#A88F66]/30 rounded-lg p-5 shadow-sm">
                                             <h4 class="font-bold text-[#8B4513] mb-4 text-center border-b border-[#A88F66]/20 pb-2">{{ stepsData[currentStep].deepThinking.chartData.title }}</h4>
                                             <div class="space-y-4">
@@ -409,7 +396,7 @@
                         下一幕 ▶
                     </button>
                     
-                    <button v-else @click="triggerNextStepModal" 
+                    <button v-else @click="startQuiz" 
                             class="px-8 py-2.5 rounded-full bg-[#A63030] text-[#F0EBE1] text-sm tracking-widest font-bold shadow-lg shadow-[#A63030]/20 hover:bg-[#8B2626] transition-all transform hover:-translate-y-0.5 cursor-pointer">
                         開始總結測驗
                     </button>
@@ -468,8 +455,8 @@
     <script>
         // --- 地理資料與最佳化視野 ---
         const OFFSET_X = 2; 
-        const FIXED_CENTER = [112.0 + OFFSET_X, 35.0]; // 置中視野，涵蓋鮮卑至建康
-        const FIXED_ZOOM = 3.8; // 縮小倍率，保證所有重點城市與部族不被裁切
+        const FIXED_CENTER = [112.0 + OFFSET_X, 35.0]; 
+        const FIXED_ZOOM = 3.8; 
 
         const CITIES = {
             '洛陽': [112.454, 34.619],
@@ -477,7 +464,8 @@
             '建康': [118.796, 32.060],
             '鄴城': [114.48, 36.31],
             '許昌': [113.81, 34.03],
-            '淝水': [116.78, 32.55] // 安徽壽縣附近
+            '淝水': [116.78, 32.55], 
+            '成都': [104.06, 30.67]  // 新增三國蜀都
         };
         
         const TRIBES = [
@@ -494,13 +482,11 @@
                 { coords: [[117.0, 41.0], [114.0, 36.5]] }, 
                 { coords: [[105.0, 35.0], [108.0, 34.5]] }  
             ],
-            // 修正：八王之亂從各藩王駐地攻向洛陽
             eightPrinces: [
                 { coords: [CITIES['長安'], CITIES['洛陽']] }, 
                 { coords: [CITIES['鄴城'], CITIES['洛陽']] },     
                 { coords: [CITIES['許昌'], CITIES['洛陽']] }      
             ],
-            // 修正：匈奴入侵從精準發兵點攻打兩京
             yongjiaInvasion: [
                 { coords: [[110.0, 40.5], CITIES['洛陽']] }, 
                 { coords: [[110.0, 40.5], CITIES['長安']] }  
@@ -509,14 +495,12 @@
                 { coords: [CITIES['洛陽'], CITIES['建康']] },
                 { coords: [CITIES['長安'], CITIES['建康']] }
             ],
-            // 淝水之戰：北方前秦攻打南方東晉
             feishuiBattle: [
                 { coords: [[114.0, 35.0], CITIES['淝水']] },
                 { coords: [CITIES['長安'], CITIES['淝水']] }
             ]
         };
         
-        // 南北對峙分界線 (秦嶺-淮河線示意)
         const BOUNDARY_LINE = [
             { coords: [[105, 33.5], [108, 34.0], [112, 33.5], [115, 33.0], [120, 33.5]] }
         ];
@@ -547,6 +531,31 @@
                     transitionWrongOption: null,
                     
                     stepsData: [
+                        // 新增：三國鼎立前導篇
+                        {
+                            title: '三國鼎立',
+                            transitionQuiz: {
+                                question: '在西晉統一全國之前，中國處於魏、蜀、吳三國鼎立的局面。司馬氏家族原本是哪一個國家的權臣？',
+                                options: ['蜀國（劉備建立）', '魏國（曹操奠基）', '吳國（孫權建立）'],
+                                correctIndex: 1,
+                                explanation: '司馬氏家族世代為曹魏的重臣，後來逐漸掌握大權，最終取代曹魏建立晉朝。'
+                            },
+                            deepThinking: {
+                                question: '延伸思考：在魏、蜀、吳三國之中，為什麼是佔據北方的「魏國」擁有最強大的實力，並為後來西晉統一打下基礎？',
+                                answer: '因為當時中國的經濟與人口重心主要集中在北方的黃河流域。魏國佔據了中原核心地帶，擁有人口優勢與豐富的農業資源，實力遠超蜀、吳兩國。'
+                            },
+                            notes: [
+                                { segments: [
+                                    { text: "東漢末年天下大亂，最終形成", isBlank: false }, { text: "魏、蜀、吳", isBlank: true, id: "b0_1" },
+                                    { text: "三國鼎立的局面。其中佔據北方的", isBlank: false }, { text: "魏國", isBlank: true, id: "b0_2" },
+                                    { text: "實力最為強大。", isBlank: false }
+                                ]},
+                                { segments: [
+                                    { text: "後來魏國權臣", isBlank: false }, { text: "司馬", isBlank: true, id: "b0_3" },
+                                    { text: "氏家族逐漸控制朝政，先後滅掉蜀國，並為日後取代曹魏、統一全國做好了準備。", isBlank: false }
+                                ]}
+                            ]
+                        },
                         {
                             title: '西晉建立',
                             transitionQuiz: {
@@ -576,11 +585,11 @@
                                 explanation: '這就是歷史上的「民族融合」。大家的生活習慣互相影響，豐富了彼此的文化。'
                             },
                             deepThinking: {
-                                question: '延伸思考：為什麼原本住在塞外的胡人，一開始會想要「內遷」搬到中原地區來住呢？（點擊下方線索卡尋找原因）',
-                                interactiveType: 'cards',
+                                question: '延伸思考：為什麼原本住在塞外的胡人，一開始會想要「內遷」搬到中原地區來住呢？',
+                                interactiveType: 'mapCards', // 變更為地圖尋寶卡片
                                 cards: [
-                                    { title: '線索一：氣候巨變', content: '當時北方草原氣候急遽變冷，出現小冰河期，導致牧草無法生長，游牧民族面臨生存危機，只好向溫暖的南方遷移。' },
-                                    { title: '線索二：勞動力需求', content: '三國時期的長期戰亂導致中原人口大量銳減，統治者需要大量招募胡人來填補農耕與當兵的勞動力。' }
+                                    { title: '線索一：氣候巨變', coord: [115.0, 43.0], mapLabel: '❄️ 氣候線索', content: '當時北方草原氣候急遽變冷，出現小冰河期，導致牧草無法生長，游牧民族面臨生存危機，只好向溫暖的南方遷移。' },
+                                    { title: '線索二：勞動力需求', coord: [112.5, 34.0], mapLabel: '🧑‍🌾 勞力線索', content: '三國時期的長期戰亂導致中原人口大量銳減，統治者需要大量招募胡人來填補農耕與當兵的勞動力。' }
                                 ],
                                 answer: '氣候變冷的「天災」加上統治者招募的「人禍」，共同促成了五胡大量內遷的歷史趨勢。'
                             },
@@ -719,17 +728,13 @@
                                 explanation: '北方人帶著技術和知識南下，大大促進了江南地區的開發，是中國經濟重心逐漸南移的轉捩點。'
                             },
                             deepThinking: {
-                                question: '延伸思考：大量中原人口南遷，規模究竟有多大？這對江南的開發帶來了什麼具體影響？（動態數據圖表分析）',
-                                interactiveType: 'chart',
-                                chartData: {
-                                    title: '西晉末年「衣冠南渡」人口遷徙估算',
-                                    bars: [
-                                        { label: '留在北方的中原人', percentage: 70, color: '#8C8373', value: '約 70%' },
-                                        { label: '南渡的北方人口', percentage: 30, color: '#A63030', value: '高達 30% (近百萬人)' }
-                                    ],
-                                    impact: '據估計，南遷人口佔當時南方總人口近六分之一！這批龐大的人口帶來了中原的鐵器、牛耕技術與充足的勞動力，是江南經濟起飛的絕對關鍵！'
-                                },
-                                answer: '龐大的人口數據證明了這不僅是一場「避難」，更是技術、資金與文化的全面南移。這徹底改變了中國南、北方的經濟平衡，為日後中國經濟重心南移奠定了最厚實的基礎。'
+                                question: '延伸思考：除了北方人口的南移，江南地區本身具備了哪些得天獨厚的條件，讓它能夠得到「重大開發」？',
+                                interactiveType: 'mapCards', // 變更為地圖尋寶卡片
+                                cards: [
+                                    { title: '線索一：自然環境', coord: [119.0, 29.0], mapLabel: '🌾 土地肥沃', content: '江南地區氣候溫暖濕潤，雨量充沛，土地肥沃，密佈的河網提供了極佳的灌溉與交通條件，非常適合農業發展。' },
+                                    { title: '線索二：國防安全', coord: [116.0, 31.0], mapLabel: '🌊 長江天險', content: '江南擁有長江這道巨大的天然防線（天險），讓北方的騎兵難以輕易渡江，為經濟發展提供了相對安定的和平環境。' }
+                                ],
+                                answer: '優越的自然氣候，加上長江天險的保護，配合北方南下的技術與勞動力，共同造就了江南地區的繁榮。'
                             },
                             notes: [
                                 { segments: [
@@ -776,7 +781,7 @@
                     return Object.keys(this.userAnswers).length === this.quizOptions.length && this.quizOptions.length > 0;
                 },
                 finalScore() {
-                    return Math.max(0, 100 - (this.mistakes * 3)); // 題目增多，扣分調降為3分
+                    return Math.max(0, 100 - (this.mistakes * 2)); // 題目增多，扣分調降為2分
                 },
                 titleName() {
                     if (this.finalScore === 100) return '史學宗師';
@@ -814,6 +819,14 @@
             methods: {
                 async initMap() {
                     this.chartInstance = echarts.init(document.getElementById('echarts-map'));
+                    
+                    // 綁定點擊事件，用於地圖尋寶線索
+                    this.chartInstance.on('click', (params) => {
+                        if (params.seriesName === 'clues') {
+                            this.toggleCard(params.data.cardIndex);
+                        }
+                    });
+
                     try {
                         const res = await fetch('https://fastly.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json');
                         const geoJson = await res.json();
@@ -828,26 +841,47 @@
                 updateMap() {
                     if (!this.chartInstance) return;
                     
-                    let cityPoints = [
-                        {name: '長安', value: CITIES['長安']},
-                        {name: '洛陽', value: CITIES['洛陽']},
-                        {name: '建康', value: CITIES['建康']}
-                    ];
-
+                    let cityPoints = [];
                     let tribePoints = [];
                     let ripplePoints = [];
+                    let cluePoints = []; // 新增：用於存放地圖尋寶線索
                     let slowLinesRed = [];
                     let slowLinesBlack = [];
                     let boundaryLines = [];
                     let divisionLabels = [];
 
                     if (this.mode === 'learn' && !this.isFullScreenNotes) {
-                        // 1. 五胡內遷時期
-                        if (this.currentStep >= 1 && this.currentStep < 4) tribePoints = TRIBES;
-                        if (this.currentStep === 1) slowLinesRed = DRAW_LINES.migrationIn;
                         
-                        // 2. 八王之亂：新增起兵城市(鄴、許昌)並呈現戰亂
-                        if (this.currentStep === 2) {
+                        // 0. 三國鼎立 (新增)
+                        if (this.currentStep === 0) {
+                            cityPoints = [
+                                {name: '洛陽 (魏)', value: CITIES['洛陽']},
+                                {name: '成都 (蜀)', value: CITIES['成都']},
+                                {name: '建業 (吳)', value: CITIES['建康']}
+                            ];
+                            divisionLabels.push(
+                                {name: '曹 魏', value: [112.0, 38.0], itemStyle: {color: '#8B4513'}, label: {fontSize: 28, opacity: 0.4}},
+                                {name: '蜀 漢', value: [103.0, 29.0], itemStyle: {color: '#4B6E5A'}, label: {fontSize: 28, opacity: 0.4}},
+                                {name: '孫 吳', value: [118.0, 28.0], itemStyle: {color: '#A63030'}, label: {fontSize: 28, opacity: 0.4}}
+                            );
+                        }
+
+                        // 西晉之後固定顯示長安、洛陽、建康
+                        if (this.currentStep >= 1) {
+                            cityPoints = [
+                                {name: '長安', value: CITIES['長安']},
+                                {name: '洛陽', value: CITIES['洛陽']},
+                                {name: '建康', value: CITIES['建康']}
+                            ];
+                        }
+
+                        // 1. 西晉建立 (Step 1)
+                        // 2. 五胡內遷 (Step 2)
+                        if (this.currentStep >= 2 && this.currentStep < 5) tribePoints = TRIBES;
+                        if (this.currentStep === 2) slowLinesRed = DRAW_LINES.migrationIn;
+                        
+                        // 3. 八王之亂 (Step 3)
+                        if (this.currentStep === 3) {
                             cityPoints.push({name: '鄴', value: CITIES['鄴城']}, {name: '許昌', value: CITIES['許昌']});
                             ripplePoints.push(
                                 {name: '受擊', value: CITIES['洛陽'], symbolSize: 18},
@@ -858,8 +892,8 @@
                             slowLinesRed = DRAW_LINES.eightPrinces;
                         }
                         
-                        // 3. 永嘉之禍
-                        if (this.currentStep === 3) {
+                        // 4. 永嘉之禍 (Step 4)
+                        if (this.currentStep === 4) {
                             ripplePoints.push(
                                 {name: '長安淪陷', value: CITIES['長安'], symbolSize: 15}, 
                                 {name: '洛陽淪陷', value: CITIES['洛陽'], symbolSize: 15},
@@ -868,7 +902,6 @@
                             slowLinesRed = DRAW_LINES.yongjiaInvasion; 
                             slowLinesBlack = DRAW_LINES.southward;
                             
-                            // 在地圖上加上衣冠南渡的醒目標籤
                             divisionLabels.push({
                                 name: '衣冠南渡 ➔', value: [114.5, 33.2], 
                                 itemStyle: {color: '#1A1A1A'}, 
@@ -876,8 +909,8 @@
                             });
                         }
 
-                        // 4. 東晉時期 (階段4, 5, 6)：繪製南北邊界線與標籤
-                        if (this.currentStep >= 4) {
+                        // 5. 東晉時期 (階段5, 6, 7)
+                        if (this.currentStep >= 5) {
                             boundaryLines = BOUNDARY_LINE;
                             divisionLabels.push(
                                 {name: '【 北方：前秦 】', value: [110.0, 37.5], itemStyle: {color: '#8B4513'}},
@@ -885,8 +918,8 @@
                             );
                         }
 
-                        // 5. 淝水之戰
-                        if (this.currentStep === 5) {
+                        // 6. 淝水之戰 (Step 6)
+                        if (this.currentStep === 6) {
                             cityPoints.push({name: '淝水', value: CITIES['淝水']});
                             ripplePoints.push(
                                 {name: '淝水交戰', value: CITIES['淝水'], symbolSize: 20},
@@ -895,19 +928,31 @@
                             slowLinesRed = DRAW_LINES.feishuiBattle;
                         }
 
-                        // 6. 江南開發
-                        if (this.currentStep === 6) {
+                        // 7. 江南開發 (Step 7)
+                        if (this.currentStep === 7) {
                             ripplePoints.push(
                                 {name: '經濟繁榮', value: CITIES['建康'], symbolSize: 20, itemStyle: {color: '#4B6E5A'}},
-                                {name: '經濟繁榮', value: [120.6, 31.3], symbolSize: 15, itemStyle: {color: '#4B6E5A'}} // 吳郡附近
+                                {name: '經濟繁榮', value: [120.6, 31.3], symbolSize: 15, itemStyle: {color: '#4B6E5A'}} 
                             );
-                            
-                            // 江南開發階段再次呈現衣冠南渡的動畫，呼應人口南移
                             slowLinesBlack = DRAW_LINES.southward;
                             divisionLabels.push({
                                 name: '衣冠南渡 ➔', value: [114.5, 33.2], 
                                 itemStyle: {color: '#1A1A1A'}, 
                                 label: {fontSize: 18, fontStyle: 'italic', textShadowColor: '#F0EBE1', textShadowBlur: 5}
+                            });
+                        }
+
+                        // 處理地圖尋寶線索 (Map Cards)
+                        if (this.showDeepThinking && this.stepsData[this.currentStep].deepThinking && this.stepsData[this.currentStep].deepThinking.interactiveType === 'mapCards') {
+                            this.stepsData[this.currentStep].deepThinking.cards.forEach((card, idx) => {
+                                if (card.coord) {
+                                    cluePoints.push({
+                                        name: card.mapLabel || '線索',
+                                        value: card.coord,
+                                        cardIndex: idx, 
+                                        itemStyle: { color: this.revealedCards[idx] ? '#4B6E5A' : '#C0A062' } // 找到變綠，未找為金
+                                    });
+                                }
                             });
                         }
                     }
@@ -932,7 +977,6 @@
                             }
                         },
                         series: [
-                            // 城市小圓點
                             {
                                 type: 'scatter', coordinateSystem: 'geo', data: cityPoints, symbolSize: 6,
                                 itemStyle: { color: '#1A1A1A' },
@@ -943,7 +987,6 @@
                                 },
                                 zlevel: 1
                             },
-                            // 部落純文字標籤
                             {
                                 type: 'scatter', coordinateSystem: 'geo', data: tribePoints, symbolSize: 0,
                                 label: {
@@ -953,7 +996,6 @@
                                 },
                                 zlevel: 1
                             },
-                            // 南北勢力標籤
                             {
                                 type: 'scatter', coordinateSystem: 'geo', data: divisionLabels, symbolSize: 0,
                                 label: {
@@ -963,7 +1005,6 @@
                                 },
                                 zlevel: 1
                             },
-                            // 戰火/繁榮漣漪
                             {
                                 type: 'effectScatter', coordinateSystem: 'geo', data: ripplePoints, 
                                 showEffectOn: 'render', 
@@ -972,7 +1013,20 @@
                                 label: { show: false },
                                 zlevel: 2
                             },
-                            // 戰亂路線 (紅色)
+                            // 新增：尋寶線索點
+                            {
+                                type: 'effectScatter', coordinateSystem: 'geo', name: 'clues', data: cluePoints,
+                                symbolSize: 22, showEffectOn: 'render',
+                                rippleEffect: { brushType: 'stroke', scale: 3 },
+                                label: {
+                                    show: true, formatter: '{b}', position: 'top', distance: 5,
+                                    fontSize: 13, fontWeight: 'bold', color: '#8B4513',
+                                    backgroundColor: 'rgba(255,255,255,0.9)', padding: [4, 6], borderRadius: 4,
+                                    borderWidth: 1, borderColor: '#A88F66'
+                                },
+                                zlevel: 4,
+                                cursor: 'pointer'
+                            },
                             {
                                 type: 'lines', coordinateSystem: 'geo', data: slowLinesRed,
                                 zlevel: 3,
@@ -981,20 +1035,18 @@
                                 lineStyle: { color: '#A63030', width: 2.5, opacity: 0.8, curveness: 0.3, type: 'dashed' },
                                 animation: true, animationDuration: 3000, animationDelay: 200
                             },
-                            // 遷徙路線 (黑色) - 關閉誇張的流動特效，改為優雅的緩慢畫線
                             {
                                 type: 'lines', coordinateSystem: 'geo', data: slowLinesBlack,
                                 zlevel: 3,
-                                symbol: ['none', 'arrow'], symbolSize: 6, // 稍微縮小箭頭
-                                effect: { show: false }, // 關閉誇張的粒子特效
+                                symbol: ['none', 'arrow'], symbolSize: 6,
+                                effect: { show: false }, 
                                 lineStyle: { color: '#1A1A1A', width: 2, opacity: 0.5, curveness: 0.3, type: 'dashed' },
-                                animation: true, animationDuration: 4000, animationDelay: 200 // 拉長繪製時間，顯得更平緩
+                                animation: true, animationDuration: 4000, animationDelay: 200 
                             },
-                            // 南北邊界線 (實線)
                             {
                                 type: 'lines', coordinateSystem: 'geo', data: boundaryLines,
                                 zlevel: 1,
-                                polyline: true, // 支援多點折線
+                                polyline: true, 
                                 lineStyle: { color: '#A88F66', width: 4, opacity: 0.5, type: 'solid' },
                                 animation: true, animationDuration: 2000
                             }
@@ -1038,8 +1090,14 @@
                     }
                 },
                 
-                toggleDeepThinking() { this.showDeepThinking = !this.showDeepThinking; },
-                toggleCard(idx) { this.revealedCards[idx] = true; },
+                toggleDeepThinking() { 
+                    this.showDeepThinking = !this.showDeepThinking; 
+                    this.updateMap(); // 展開時更新地圖，顯示線索點
+                },
+                toggleCard(idx) { 
+                    this.revealedCards[idx] = true; 
+                    this.updateMap(); // 點擊卡片後更新地圖顏色
+                },
                 prevStep() { if (this.currentStep > 0) this.currentStep--; },
                 jumpToStep(index) { 
                     if (this.mode === 'learn' && !this.showTransitionModal) {
